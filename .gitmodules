@@ -1,0 +1,3 @@
+[submodule "watchmal/model/pointnet2_src"]
+	path = watchmal/model/pointnet2_src
+	url = https://github.com/erikwijmans/Pointnet2_PyTorch.git
