@@ -54,7 +54,8 @@ class PointNetDataset(H5Dataset):
         self.use_orientations = use_orientations
         self.use_times = use_times
         self.n_points = n_points
-        self.transforms = du.get_transformations(transformations, transforms)
+        # self.transforms = du.get_transformations(transformations, transforms)
+        self.transforms = du.get_transformations(transformations, transforms) or []
         self.channels = 4
         if use_orientations:
             self.channels += 3

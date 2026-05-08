@@ -1,0 +1,14 @@
+defaults:
+    - data: wcte_pointnet_data
+    - model: pointnet
+    - tasks/train: train_pointnet
+    - tasks/restore_best_state: restore_best_state
+    - tasks/evaluate: test
+gpu_list: [0]
+seed: null
+dump_path: './outputs/'
+hydra:
+  run:
+    dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S.%f}
+  job:
+    chdir: True

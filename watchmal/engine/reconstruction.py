@@ -200,6 +200,7 @@ class ReconstructionEngine(ABC):
         """Backward pass using the loss computed for a mini-batch"""
         self.optimizer.zero_grad()  # reset accumulated gradient
         self.loss.backward()  # compute new gradient
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
         self.optimizer.step()  # step params
 
     def train(self, epochs=0, val_interval=20, num_val_batches=4, checkpointing=False, save_interval=None):

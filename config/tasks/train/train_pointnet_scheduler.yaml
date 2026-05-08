@@ -1,16 +1,14 @@
 defaults:
- - /optimizers: adam
- - /loss: cross_entropy
- - /sampler@data_loaders.train.sampler: subset_random
- - /sampler@data_loaders.validation.sampler: subset_random
+  - /optimizers: adam
+  - /loss: cross_entropy
+  - /scheduler: cosine_torch
+  - /sampler@data_loaders.train.sampler: subset_random
+  - /sampler@data_loaders.validation.sampler: subset_random
 
 epochs: 20
-
 val_interval: 100
 num_val_batches: 32
-
 checkpointing: False
-
 data_loaders:
   train:
     split_key: train_idxs
@@ -23,4 +21,3 @@ data_loaders:
     batch_size: 512
     num_workers: 4
     drop_last: true
-

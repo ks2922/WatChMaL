@@ -76,6 +76,41 @@ class H5CommonDataset(Dataset, ABC):
 
     def load_target(self, target_key):
         if target_key == "directions":
+            return direction_from_angles(self.load_target("angles"))
+
+        elif target_key == "three_momenta":
+            # Load base quantities
+            angles = self.load_target("angles")          # (N, 2)
+            energies = self.load_target("energies")      # (N,)
+            labels = self.load_target("labels")          # (N,)
+
+            # Compute directions: (N, 3)
+            directions = direction_from_angles(angles)
+
+            # Ensure clean shapes
+            energies = np.asarray(energies).reshape(-1)
+            labels = np.asarray(labels).reshape(-1).astype(int)
+
+            # Particle masses: [gamma, electron, muon, pi0]
+            particle_masses = np.array([0.0, 0.511, 105.7, 134.98])
+
+            # Map labels to  masses (N,)
+            mass = particle_masses[labels]
+
+            # Compute momentum magnitude (N,)
+            momentum = np.sqrt(np.maximum(energies**2 - mass**2, 0.0))
+
+            # Force correct broadcasting shape (N, 1)
+            momentum = momentum.reshape(-1, 1)
+
+            # Final 3-momentum (N, 3)
+            return directions * momentum
+
+        else:
+            return np.array(self.h5_file[target_key]).squeeze()
+    """
+    def load_target(self, target_key):
+        if target_key == "directions":
             return direction_from_angles(np.array(self.h5_file["angles"]))
         elif target_key == "three_momenta":
             directions = direction_from_angles(np.array(self.h5_file["angles"]))
@@ -83,7 +118,7 @@ class H5CommonDataset(Dataset, ABC):
             return directions*momenta
         else:
             return np.array(self.h5_file[target_key]).squeeze()
-
+    """
     def initialize(self):
         """
         Initialises the arrays from the HDF5 file. For DistributedDataParallel, this cannot be done when first creating
@@ -164,6 +199,19 @@ class H5Dataset(H5CommonDataset, ABC):
         
     def __getitem__(self, item):
         data_dict = super().__getitem__(item)
+        """
+        # temporary add-in fix
+        if "three_momenta" in self.target_key:
+            energy = data_dict["energies"]
+            label = data_dict["labels"]
+
+            particle_masses = np.array([0, 0.511, 105.7, 134.98])
+            mass = particle_masses[label]
+
+            momentum = np.sqrt(np.maximum(energy**2 - mass**2, 0.0))
+
+            data_dict["three_momenta"] = momentum
+        """
 
         start = self.event_hits_index[item]
         stop = self.event_hits_index[item + 1]
@@ -215,7 +263,19 @@ class H5TrueDataset(H5CommonDataset, ABC):
 
     def __getitem__(self, item):
         data_dict = super().__getitem__(item)
+        """
+        # temporary add-in fix
+        if "three_momenta" in self.target_key:
+            energy = data_dict["energies"]
+            label = data_dict["labels"]
 
+            particle_masses = np.array([0, 0.511, 105.7, 134.98])
+            mass = particle_masses[label]
+
+            momentum = np.sqrt(np.maximum(energy**2 - mass**2, 0.0))
+
+            data_dict["three_momenta"] = momentum
+        """
         start = self.event_hits_index[item]
         stop = self.event_hits_index[item + 1]
 

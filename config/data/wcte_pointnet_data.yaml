@@ -1,0 +1,6 @@
+defaults:
+  - dataset: wcte_pointnet
+split_path: /vols/hyperk/users/ks2922/ML_2025/cds_geometry/split_paths/wcte_CDS_pgun_e-_10M_mu-_10M_0to1GeV_fixedFC_fixed_mu/emu_ALL.npz
+dataset:
+  h5file: /vols/hyperk/users/ks2922/ML_2025/cds_geometry/h5_files/wcte_CDS_pgun_e-_10M_mu-_10M_0to1GeV_fixedFC_fixed_mu.h5
+  geometry_file: /vols/hyperk/users/ks2922/ML_2025/cds_geometry/geometries/WCTE_geometry_v1.12.21.npz

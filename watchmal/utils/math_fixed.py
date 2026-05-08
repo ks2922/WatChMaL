@@ -91,9 +91,7 @@ def momentum_from_energy(energy, label, particle_masses=np.array((0, 0.511, 105.
     np.ndarray or scalar
         array of momentum values for each energy, or scalar if only one energy
     """
-    # temporary fix due to explosion, might not be necessary?
-    mass = particle_masses[label]
-    # mass = particle_masses[label]*np.ones_like(energy)
+    mass = particle_masses[label]*np.ones_like(energy)
     return np.sqrt(energy**2 - mass**2)
 
 

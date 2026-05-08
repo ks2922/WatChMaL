@@ -109,7 +109,6 @@ def plot_resolution_profile(runs, quantity, binning, selection=None, ax=None, fi
         args = {**plot_args, **r.plot_args}
         r.plot_binned_resolution(quantity, ax, binning, selection, **args)
     ax.set_xlabel(x_label)
-    ax.set_ylabel(y_label)
     if legend:
         ax.legend(loc=legend)
     if y_lim is not None:

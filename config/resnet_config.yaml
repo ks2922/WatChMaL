@@ -1,0 +1,29 @@
+gpu_list:
+    - 0
+data:
+  split_path: /vols/hyperk/users/nprouse/WCTE/ML/wcsim_wcte_pgun_3M_e-_3M_mu-_3M_gamma_3M_pi+/index_lists/wcsim_wcte_pgun_3M_e-_3M_mu-_3M_gamma_3M_pi+_2class_emu_FC.npz
+  dataset:
+    h5file: /vols/hyperk/users/nprouse/WCTE/ML/wcsim_wcte_pgun_3M_e-_3M_mu-_3M_gamma_3M_pi+/h5/wcsim_wcte_pgun_3M_e-_3M_mu-_3M_gamma_3M_pi+_0to1GeV.h5
+    mpmt_positions_file: /vols/t2k/WCTE/ml_2024/WCTE_mPMT_image_positions.npz
+    channels: ['is_hit', 'mpmt_position']
+    geometry_file: /vols/t2k/WCTE/ml_2024/wcte_full_geo_v1.2.npz
+model:
+  num_input_channels: 22
+tasks:
+  train:
+   val_interval: 40
+   num_val_batches: 32
+   data_loaders:
+    validation:
+      batch_size: 2048
+  evaluate:
+    data_loaders:
+      test:
+        batch_size: 2048
+hydra:
+  run:
+    dir: /vols/hyperk/users/sc4422/Initial_test/batch_runs/outputs/${now:%Y-%m-%d}/${now:%H-%M-%S.%f}
+defaults:
+    - resnet_train
+    - override model: resnet50
+    - _self_

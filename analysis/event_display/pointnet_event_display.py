@@ -64,3 +64,30 @@ class PointNetEventDisplay(PointNetDataset):
             data_values = data[data_channel, :]
         unhit_coordinates = np.delete(self.geo_positions, self.event_hit_pmts, axis=0)
         return plot_event_3d(data_values, data_coordinates, unhit_coordinates, **kwargs)
+    
+    def plot_unwrapped_barrel(hit_coords, unhit_coords):
+    # Convert to cylindrical
+    def to_phi_z(coords):
+        x, y, z = coords[:,0], coords[:,1], coords[:,2]
+        phi = np.arctan2(y, x)  # [-pi, pi]
+        return phi, z
+
+    phi_hit, z_hit = to_phi_z(hit_coords)
+    phi_unhit, z_unhit = to_phi_z(unhit_coords)
+
+    plt.figure(figsize=(10,5))
+
+    # Plot unhit PMTs (background)
+    plt.scatter(phi_unhit, z_unhit, s=5, alpha=0.2, label="Unhit PMTs")
+
+    # Plot hits
+    plt.scatter(phi_hit, z_hit, s=5, alpha=0.8, label="Hit PMTs")
+
+    plt.xlabel("Azimuth φ [rad]")
+    plt.ylabel("z [cm]")
+    plt.title("Unwrapped Barrel View")
+    plt.legend()
+    plt.show()
+
+
+
