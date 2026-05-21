@@ -1,5 +1,33 @@
 import torch.nn as nn
 import torch
+import torch.nn.functional as F
+
+
+class ShiftInvariantConv2d(nn.Conv2d):
+    """
+    Conv2d whose output is invariant to an arbitrary constant added to a subset of input channels.
+    The constant can vary per example (event), but not per channel, and has no effect on the output of the convolution.
+    This means that the convolution only depends on relative differences between values within the receptive field for
+    those channels, and the output is independent of their absolute scale.
+
+    This is achieved by constraining the weights to sum to zero over spatial dimensions and the specified input channels
+    by subtracting the mean of the respective weights that multiply any input value of the specified channels.
+
+    Parameters
+    ----------
+    constrained_in_channels : list[int]
+        Input channel indices to be constrained to be shift invariant.
+    All other parameters are identical to nn.Conv2d.
+    """
+
+    def __init__(self, constrained_in_channels, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.register_buffer("_cidx", torch.tensor(constrained_in_channels, dtype=torch.long))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        w = self.weight.clone()
+        w[:, self._cidx] -= w[:, self._cidx].mean(dim=(1, 2, 3), keepdim=True)
+        return self._conv_forward(x, w, self.bias)
 
 
 def conv1x1(in_planes, out_planes, stride=1):
@@ -85,7 +113,8 @@ class Bottleneck(nn.Module):
 class ResNet(nn.Module):
 
     def __init__(self, block, layers, num_input_channels, num_output_channels, zero_init_residual=False,
-                 conv_pad_mode='zeros', group_norm=False, n_groups=32):
+                 first_kernel_size=1, first_stride=1, shift_inv_channels=None, conv_pad_mode='zeros',
+                 group_norm=False, n_groups=32):
         if group_norm:
             class GroupNorm(nn.GroupNorm):
                 def __init__(self, num_channels):
@@ -98,7 +127,24 @@ class ResNet(nn.Module):
 
         self.inplanes = 64
 
-        self.conv1 = nn.Conv2d(num_input_channels, 64, kernel_size=1, stride=1, padding=0, bias=False)
+        pad_l = first_kernel_size // 2
+        pad_r = first_kernel_size - 1 - pad_l
+        self.pad1 = lambda x: F.pad(x, (pad_l, pad_r, pad_l, pad_r), mode="constant" if conv_pad_mode == "zeros" else conv_pad_mode)
+        if shift_inv_channels is None:
+            self.conv1 = nn.Conv2d(num_input_channels, 64, kernel_size=first_kernel_size, stride=first_stride, padding=0, bias=False)
+        else:
+            if conv_pad_mode == "zeros":
+                pad1 = self.pad1
+                def replace_inv_channel_pad(x):
+                    values = x[:, shift_inv_channels, 0:1, 0:1]
+                    x = pad1(x)
+                    x[:, shift_inv_channels, :pad_l, :] = values
+                    x[:, shift_inv_channels, -pad_r:, :] = values
+                    x[:, shift_inv_channels, :, :pad_l] = values
+                    x[:, shift_inv_channels, :, -pad_r:] = values
+                    return x
+                self.pad1 = replace_inv_channel_pad
+            self.conv1 = ShiftInvariantConv2d(shift_inv_channels, num_input_channels, 64, kernel_size=first_kernel_size, stride=first_stride, padding=0, bias=False)
         self.bn1 = self.norm(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -145,6 +191,7 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
+        x = self.pad1(x)
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)

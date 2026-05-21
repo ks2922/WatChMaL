@@ -34,6 +34,7 @@ class CNNDataset(H5Dataset):
         transforms=None,
         one_indexed=False,
         use_memmap=True,
+        mask_pmts=None,
         channel_scale_factor=None,
         channel_scale_offset=None,
         use_isHit=False,
@@ -41,6 +42,7 @@ class CNNDataset(H5Dataset):
         use_orientations=False,
         geometry_file=None,
         use_invalid_value=False,
+        use_median_unhit_times=False,
         use_log_charge=False,
     ):
         """
@@ -67,6 +69,8 @@ class CNNDataset(H5Dataset):
             indexes). By default, zero-indexing is assumed.
         use_memmap: bool
             Use a memmap and load data into memory as needed (default), otherwise load entire dataset at initialisation
+        mask_pmts: list of int
+            List of PMT IDs to mask out from all data (None by default)
         ---------- The following features are used for optimization.
         channel_scale_factor: dict of float
             Dictionary with keys corresponding to channels and values contain the factors to divide that channel.
@@ -84,6 +88,8 @@ class CNNDataset(H5Dataset):
             Location of an npz file containing the real positions and orientations info.
         use_invalid_value: bool
             Whether to set all the channel of unhit as an invalid value (like -100).
+        use_median_unhit_times: bool
+            Whether to set unhit times to the median value of the normalised hit times
         use_log_charge: bool
             Whether to logarithmically transform the charge.
         ---------- The following features are used for Visual Transformer. 
@@ -96,7 +102,7 @@ class CNNDataset(H5Dataset):
         ----------
         """
 
-        super().__init__(h5file, use_memmap)
+        super().__init__(h5file, use_memmap, mask_pmts)
 
         self.pmt_positions = np.load(pmt_positions_file)["pmt_image_positions"].astype(
             int
@@ -107,6 +113,7 @@ class CNNDataset(H5Dataset):
         self.use_positions = use_positions
         self.use_orientations = use_orientations
         self.use_invalid_value = use_invalid_value
+        self.use_median_unhit_times = use_median_unhit_times
         self.use_log_charge = use_log_charge
         self.data_size = np.max(self.pmt_positions, axis=0) + 1
         if use_padding:
@@ -120,11 +127,11 @@ class CNNDataset(H5Dataset):
         self.one_indexed = one_indexed
 
         if use_positions:
-            self.real_3Dpositions = np.load(geometry_file)["positions"]
+            self.real_3Dpositions = np.load(geometry_file)["position"]
         else:
             self.real_3Dpositions = None
         if use_orientations:
-            self.real_3Dorientations = np.load(geometry_file)["orientations"]
+            self.real_3Dorientations = np.load(geometry_file)["orientation"]
         else:
             self.real_3Dorientations = None
 
@@ -247,9 +254,11 @@ class CNNDataset(H5Dataset):
             ) / orientations_scale
 
         if "time" in self.channel_map:
-            data[self.channel_map["time"], hit_rows, hit_cols] = (
-                hit_times - time_offset
-            ) / time_scale
+            normalised_times = (hit_times - time_offset) / time_scale
+            if self.use_median_unhit_times:
+                median_time = np.median(normalised_times)
+                data[self.channel_map["time"]] = median_time
+            data[self.channel_map["time"], hit_rows, hit_cols] = normalised_times
         if "charge" in self.channel_map:
             data[self.channel_map["charge"], hit_rows, hit_cols] = (
                 hit_charges - charge_offset

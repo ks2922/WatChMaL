@@ -50,7 +50,7 @@ class CNNmPMTDataset(H5Dataset):
 
     def __init__(self, h5file, mpmt_positions_file, transforms=None, use_new_mpmt_convention=False, rotate_mpmts=None,
                  channels=None, collapse_mpmt_channels=None, channel_scale_factor=None, channel_scale_offset=None,
-                 geometry_file=None, use_memmap=True):
+                 use_median_unhit_times=False, geometry_file=None, use_memmap=True, mask_pmts=None):
         """
         Constructs a dataset for CNN data. Event hit data is read in from the HDF5 file and the PMT charge data is
         formatted into an event-display-like image for input to a CNN. Each pixel of the image corresponds to one mPMT
@@ -84,13 +84,17 @@ class CNNmPMTDataset(H5Dataset):
         channel_scale_offset: dict[string, float]
             Dictionary with keys corresponding to channels and values contain the offsets to subtract from that channel.
             By default, no scaling is applied.
+        use_median_unhit_times: bool
+            Whether to set unhit times to the median value of the normalised hit times
         geometry_file: string
             Path to file defining the 3D geometry (PMT positions and orientations), required if using geometry channels.
         use_memmap: bool
             Use a memmap and load data into memory as needed (default), otherwise load entire dataset at initialisation
+        mask_pmts: list of int
+            List of PMT IDs to mask out from all data (None by default)
 """
 
-        super().__init__(h5file, use_memmap)
+        super().__init__(h5file, use_memmap, mask_pmts)
 
         self.mpmt_positions = np.load(mpmt_positions_file)['mpmt_image_positions']
         self.use_new_mpmt_convention = use_new_mpmt_convention
@@ -123,6 +127,7 @@ class CNNmPMTDataset(H5Dataset):
         if channel_scale_factor is None:
             channel_scale_factor = {}
         self.scale_factor = channel_scale_factor
+        self.use_median_unhit_times = use_median_unhit_times
 
         self.image_height, self.image_width = np.max(self.mpmt_positions, axis=0) + 1
         # make some index expressions for different parts of the image, to use in transformations etc
@@ -187,7 +192,7 @@ class CNNmPMTDataset(H5Dataset):
         self.v_flip_permutation = np.array(self.v_flip_permutation)
         self.rotate_permutation = self.h_flip_permutation[self.v_flip_permutation]
 
-    def process_data(self, pmts, pmt_data):
+    def process_data(self, pmts, pmt_data, unhit_value=0):
         """Returns image-like event data array (channels, rows, columns) from arrays of PMT IDs and data at the PMTs."""
         # Ensure the data is a 2D array with first dimension being the number of pmts
         pmt_data = np.atleast_1d(pmt_data)
@@ -199,7 +204,8 @@ class CNNmPMTDataset(H5Dataset):
         rows = self.mpmt_positions[mpmts, 0]
         cols = self.mpmt_positions[mpmts, 1]
 
-        data = np.zeros((PMTS_PER_MPMT, pmt_data.shape[1], self.image_height, self.image_width), dtype=np.float32)
+        data = np.full(unhit_value, (PMTS_PER_MPMT, pmt_data.shape[1], self.image_height, self.image_width),
+                       dtype=np.float32)
         data[channels, :, rows, cols] = pmt_data
 
         # fix indexing of barrel PMTs in mPMT modules to match that of endcaps in the projection to 2D
@@ -223,7 +229,10 @@ class CNNmPMTDataset(H5Dataset):
         data = np.zeros((self.image_depth, self.image_height, self.image_width), dtype=np.float32)
         for c, r in self.channel_ranges.items():
             if c in hit_data:
-                channel_data = self.process_data(self.event_hit_pmts, hit_data[c]).squeeze()
+                unhit_values = 0
+                if c=="time" and self.use_median_unhit_times:
+                    unhit_values = np.median(hit_data[c])
+                channel_data = self.process_data(self.event_hit_pmts, hit_data[c], unhit_values).squeeze()
                 if c in self.collapse_channels:
                     channel_data = collapse_channel(channel_data)
             elif c in self.geom_data:
