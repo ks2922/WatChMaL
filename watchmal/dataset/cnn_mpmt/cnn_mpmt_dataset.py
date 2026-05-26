@@ -204,8 +204,11 @@ class CNNmPMTDataset(H5Dataset):
         rows = self.mpmt_positions[mpmts, 0]
         cols = self.mpmt_positions[mpmts, 1]
 
-        data = np.full(unhit_value, (PMTS_PER_MPMT, pmt_data.shape[1], self.image_height, self.image_width),
-                       dtype=np.float32)
+        # attemped fix for the shape issue
+        data = np.full((PMTS_PER_MPMT, pmt_data.shape[1], self.image_height, self.image_width), unhit_value, dtype=np.float32)
+        # commenting this out as i think it's causing the shape issue
+        # data = np.full(unhit_value, (PMTS_PER_MPMT, pmt_data.shape[1], self.image_height, self.image_width),
+        #                dtype=np.float32)
         data[channels, :, rows, cols] = pmt_data
 
         # fix indexing of barrel PMTs in mPMT modules to match that of endcaps in the projection to 2D
