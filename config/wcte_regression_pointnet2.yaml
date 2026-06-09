@@ -1,0 +1,20 @@
+defaults:
+  - wcte_defaults_pointnet
+  - engine: regression
+  - override loss@tasks.train.loss: huber
+  - override loss@tasks.evaluate.loss: huber
+  - _self_
+
+engine:
+  target_key:
+    - positions
+    - directions
+    - energies
+  target_scale_factor:
+    positions: 1
+    directions: 0.01
+    energies: 1
+
+model:
+  _target_: watchmal.model.pointnet2.PointNet2
+  num_output_channels: 7

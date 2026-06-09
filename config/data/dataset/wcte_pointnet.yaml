@@ -1,5 +1,5 @@
 _target_: watchmal.dataset.pointnet.pointnet_dataset.PointNetDataset
-geometry_file: /vols/hyperk/users/ks2922/ML_2025/cds_geometry/geometries/WCTE_geometry_v1.12.21.npz
+geometry_file: /rds/general/user/ks2922/home/mres/cds_geometry/geometries/WCTE_geometry_v1.12.21.npz
 use_times: True
 use_orientations: False
 n_points: 4000
