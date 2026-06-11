@@ -1,0 +1,3 @@
+_target_: watchmal.loss.smooth_relative_huber.SmoothRelativeHuberLoss
+delta: 1.0
+p0: 40.0

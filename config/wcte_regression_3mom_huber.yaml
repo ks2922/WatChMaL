@@ -1,0 +1,16 @@
+defaults:
+  - wcte_defaults
+  - engine: regression
+  - override model: resnet50
+  - override loss@tasks.train.loss: huber
+  - override loss@tasks.evaluate.loss: huber
+  - _self_
+
+engine:
+  target_key:
+    - three_momenta
+  target_scale_factor:
+    three_momenta: 0.5
+
+model:
+  num_output_channels: 3
