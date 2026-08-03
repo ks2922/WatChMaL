@@ -1,0 +1,5 @@
+_target_: watchmal.model.pointnet2_multiring.PointNet2MultiRing
+num_input_channels: 5
+num_rings: 2
+channels_per_ring: 7
+dropout: 0.3

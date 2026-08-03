@@ -1,0 +1,9 @@
+_target_: watchmal.model.pointnet2_old.PointNet2
+num_input_channels: 5
+num_output_channels: 7
+sa1_npoint: 256
+sa1_radius: 15.0
+sa2_npoint: 64
+sa2_radius: 60.0
+nsample: 32
+dropout: 0.3

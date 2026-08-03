@@ -1,0 +1,5 @@
+_target_: watchmal.model.resnet_multiring.ResNetMultiRing
+num_input_channels: 41
+conv_pad_mode: circular
+num_rings: 2
+channels_per_ring: 7

@@ -1,0 +1,9 @@
+_target_: watchmal.engine.regression_tda.RegressionEngine
+target_key:
+  - positions
+  - directions
+  - energies
+target_scale_factor:
+  positions: 1
+  directions: 0.01
+  energies: 1

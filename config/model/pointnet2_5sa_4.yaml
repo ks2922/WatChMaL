@@ -1,0 +1,4 @@
+_target_: watchmal.model.pointnet2_5sa_4.PointNet2
+num_input_channels: 5
+num_output_channels: 7
+dropout: 0.3

@@ -2,4 +2,4 @@ _target_: watchmal.dataset.pointnet.pointnet_dataset.PointNetDataset
 geometry_file: /rds/general/user/ks2922/home/mres/cds_geometry/geometries/WCTE_geometry_v1.12.21.npz
 use_times: True
 use_orientations: False
-n_points: 4000
+n_points: 512

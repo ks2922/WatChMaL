@@ -15,3 +15,6 @@ engine:
     directions: 0.01
     energies: 1
 
+model:
+  _target_: watchmal.model.pointnet2_pyg_physics.PointNet2_WatChMaL
+  num_output_channels: 7

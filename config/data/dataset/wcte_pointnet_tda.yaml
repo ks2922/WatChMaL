@@ -1,0 +1,6 @@
+_target_: watchmal.dataset.pointnet.pointnet_dataset_tda.PointNetDataset
+geometry_file: /scratch/ks2922/mres/cds_geometry/geometries/WCTE_geometry_v1.12.21.npz
+use_times: true
+use_orientations: false
+n_points: 512
+tda_feature_file: /scratch/ks2922/mres/tda/features/wcte_tda_trainable.npz
