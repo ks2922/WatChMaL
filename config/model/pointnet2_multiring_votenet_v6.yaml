@@ -1,0 +1,11 @@
+_target_: watchmal.model.pointnet2_multiring_votenet_v6.PointNet2MultiRingVoteNetV6
+num_input_channels: 5
+num_rings: 2
+channels_per_ring: 7
+slot_embed_dim: 32
+max_vote_offset: 200.0
+dropout: 0.3
+cluster_temperature: 20.0
+cluster_penalty_scale: 1000.0
+attn_num_heads: 8
+knn_k: 16

@@ -1,0 +1,12 @@
+_target_: watchmal.engine.regression_multiring_v2.MultiRingRegressionEngineV2
+target_key:
+  - positions
+  - angles
+  - energies
+num_rings: 2
+huber_delta: 0.1
+aux_loss_weight: 0.3
+target_scale_factor:
+  positions: 1
+  directions: 0.01
+  energies: 1
