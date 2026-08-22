@@ -35,8 +35,6 @@ class MultiRingRegressionEngineV3DirWeight(MultiRingRegressionEngineV3):
 
         aux_loss = F.huber_loss(self._matched_aux, self.target_stack, delta=self.huber_delta, reduction="mean")
         vote_loss = vote_supervision_loss(self._vote_xyz, self.target_dict["positions"])
-            self._vote_xyz, self.target_dict["positions"]
-        )
 
         self.loss = main_loss + self.aux_loss_weight * aux_loss + self.vote_loss_weight * vote_loss
 

@@ -32,8 +32,7 @@ class PointNetDataset(H5Dataset):
 
         self.tda_features = None
         if tda_feature_file is not None:
-            tda_npz = np.load(tda_feature_file, mmap_mode='r')
-            self.tda_features = tda_npz[tda_key]  # kept memory-mapped, not loaded fully into RAM
+            self.tda_features = np.load(tda_feature_file, mmap_mode='r')
 
             self.tda_n_events = self.tda_features.shape[0]
 
