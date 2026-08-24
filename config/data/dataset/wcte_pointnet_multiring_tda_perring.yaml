@@ -1,0 +1,7 @@
+_target_: watchmal.dataset.pointnet.pointnet_dataset_multiring_tda.PointNetDatasetMultiRingTDAPerRing
+h5file: ???
+geometry_file: ???
+tda_features_file: ???
+use_times: true
+use_orientations: false
+n_points: 2000

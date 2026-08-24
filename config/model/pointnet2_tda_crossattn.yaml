@@ -1,0 +1,7 @@
+_target_: watchmal.model.pointnet2_tda_crossattn.PointNet2TDACrossAttn
+num_input_channels: 5
+num_output_channels: 7
+dropout: 0.3
+use_tda: true
+tda_dim: 800
+attn_heads: 4

@@ -1,0 +1,12 @@
+_target_: watchmal.engine.regression_multiring_v5_tda_perring.MultiRingRegressionEngineV5TDAPerRing
+num_rings: 2
+huber_delta: 0.1
+aux_loss_weight: 0.3
+vote_loss_weight: 0.5
+position_norm_cm: 50.0
+direction_norm: 0.3
+energy_norm_mev: 100.0
+target_scale_factor:
+  positions: 1
+  directions: 0.01
+  energies: 1
