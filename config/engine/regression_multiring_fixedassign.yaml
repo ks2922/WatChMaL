@@ -1,0 +1,10 @@
+_target_: watchmal.engine.regression_multiring_fixedassign.MultiRingRegressionEngineFixedAssign
+target_key:
+  - positions
+  - angles
+  - energies
+num_rings: 2
+target_scale_factor:
+  positions: 1
+  directions: 0.01
+  energies: 1
