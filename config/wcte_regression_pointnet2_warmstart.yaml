@@ -1,0 +1,31 @@
+defaults:
+  - data: wcte_pointnet_data
+  - model: pointnet2_multiring_votenet_v8_tda_perring
+  - engine: regression_multiring_v5_tda_perring_warmstart
+  - tasks/load_pretrained_weights: load_pretrained_weights
+  - tasks/train: train_pointnet
+  - tasks/restore_best_state: restore_best_state
+  - tasks/evaluate: test
+  - override loss@tasks.train.loss: huber
+  - override loss@tasks.evaluate.loss: huber
+  - _self_
+
+gpu_list: [0]
+seed: null
+dump_path: './outputs/'
+
+engine:
+  target_key:
+    - positions
+    - angles
+    - energies
+  target_scale_factor:
+    positions: 1
+    directions: 0.01
+    energies: 1
+
+hydra:
+  run:
+    dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S.%f}
+  job:
+    chdir: True
