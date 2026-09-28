@@ -93,7 +93,7 @@ Single-ring TDA-fusion training jobs. See `tda_README.md` for full details.
 | File pattern | What |
 |---|---|
 | `reg_e_tda_full_*.{job,sh}` | Base TDA fusion (concatenation), electrons |
-| `reg_e_tda_amp_*.{job,sh}` | Mixed-precision (AMP) TDA fusion - although I believe I turned amp off for this later. I fixed the timing issue so amp should not be necessary, this script can be run as a baseline |
+| `reg_e_tda_*_amp.{job,sh}` | Mixed-precision (AMP) TDA fusion - although I believe I turned amp off for this later. I fixed the timing issue so amp should not be necessary, this script can be run as a baseline |
 | `reg_e_tda_gated_*.{job,sh}` | Gated fusion variant |
 | `reg_e_tda_crossattn_*.{job,sh}` | Cross-attention fusion variant |
 | `*_mmap_smoke.{job,sh}` | Short smoke-test for memory-mapped data loading |
