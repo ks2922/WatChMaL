@@ -152,7 +152,7 @@ These jobs require the multi-ring TDA features from `tda/`. See `tda_README.md`.
 
 ## Batch-job tracking
 
-A spreadsheet maps every job name to its output directory, result, and thesis table entry. It is uploaded to this repository as `batch_job_tracking.xlsx`.
+A spreadsheet maps every job name to its output directory, result, and description. It is uploaded to this repository as `batch_job_tracking.xlsx`.
 
 ---
 
