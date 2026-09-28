@@ -160,4 +160,4 @@ A spreadsheet maps every job name to its output directory, result, and descripti
 
 - In the multi-ring analysis, "Ring 0 / Ring 1" are raw matched output slots, **not** sorted by true energy. Keep in mind when comparing leading/subleading ring results.
 - Results of each run were transferred to HEP and analysis notebooks were kept on HEP.
-- Clusters used: **fir** (SLURM, what this README refers to), **HEP** (HTCondor) and **HPC** (PBS). Work on the latter two lives elsewhere: /vols/hyperk/users/ks2922/ML_2025 (HEP) & /rds/general/user/ks2922/home/mres (HPC). These should follow the same directory style as on fir.
+- Clusters used: **fir** (SLURM, what this README refers to), **HEP** (HTCondor) and **HPC** (PBS). Work on the latter two lives elsewhere: `/vols/hyperk/users/ks2922/ML_2025` (HEP) & `/rds/general/user/ks2922/home/mres` (HPC). These should follow the same directory style as on fir.
