@@ -1,278 +1,163 @@
-# Water Cherenkov Machine Learning (WatChMaL)
+# MRes project
 
-# Description
+Deep learning and topological data analysis for single- and multi-ring event reconstruction at WCTE.    
+**Code:** https://github.com/ks2922/WatChMaL, branch `master` (fork of WatChMaL/WatChMaL).  
+**TDA-specific details:** see `tda_README.md`.
 
-Unified framework for the training, testing and using Machine Learning models for Water Cherenkov Detectors.
+---
 
-# Table of Contents
+## HEP layout (`/vols/hyperk/users/ks2922/ML_2025/`)
 
-1. [Installation](#installation)
-2. [Usage](#usage)
-    1. [Basic Usage](#basic-usage)
-    2. [Configuration](#configuration)
-        1. [Hydra configuration framework](#hydra-configuration-framework)
-        2. [WatChMaL configuration](#watchmal-configuration)
-        3. [Configuration example](#configuration-example)
-3. [Development](#development)
+### Analysis notebooks (`scripts/analysis/`)
 
-# Installation
+The main analysis lives here. Key notebooks:
 
-Requirements can be found in requirements.txt.
-The main requirements are [pytorch](pytorch.org), [numpy](numpy.org) and [hydra](hydra.cc).
+| Notebook | Contents |
+|---|---|
+| `regression_katie_singlering_thesis.ipynb` | Single-ring resolution results |
+| `regression_katie_tuning_thesis.ipynb` | PointNet++ architecture search / tuning |
+| `regression_katie_pointnet_tuning_npoint_radius_thesis.ipynb` | n-point and radius tuning |
+| `regression_katie_pointnet_tuning_SA_layers_thesis.ipynb` | SA-layer depth study |
+| `regression_multiring_sweep_thesis.ipynb` | Multi-ring architecture sweep results |
+| `regression_multiring_tuned_final_thesis.ipynb` | Final multi-ring results (thesis figures) |
+| `regression_multiring.ipynb` | Multi-ring working notebook |
+| `regression_multiring_persistence.ipynb` | TDA persistence features for multi-ring |
 
-To download the repository use :
+### TDA analysis (`scripts/analysis/tda/`)
 
-```
-git clone https://github.com/WatChMaL/WatChMaL.git
-```
+| File | Contents |
+|---|---|
+| `geometry_persistence_visualisation.ipynb` | Geometry and persistence diagram visualisation |
 
-# Usage
-## Basic Usage
+### Simulation / dataset checks (`simulation/analysis/`)
 
-From within the WatChMaL/WatChMaL repository, run `main.py` in Python 3.
- 
-Using `-c job` to the options will tell the hydra config system to print the full config and then exit.
- 
-```
-python main.py -c job [config options]
-```
+| File | Contents |
+|---|---|
+| `dataset_check.ipynb` | Dataset integrity and distribution checks |
+| `multiring_simulation_analysis.py` | Multi-ring simulation analysis |
+| `simulation_analysis*.py` | Various simulation diagnostic scripts (charge, time, etc.) |
 
-where the config options are will generally provide a top-level config file
-as well as any additional config parameters overrides, as described in more detail below.
+## fir Layout (`scratch/ks2922/mres/`)
 
-After checking the printed config, removing the `-c job` option and re-running the command will then print the config
-and start the actual job.
+| Folder | Contents |
+|---|---|
+| `WatChMaL/` | the git repo (models, engines, configs, analysis notebooks) |
+| `tda/` | TDA precompute and feature scripts and outputs; see `tda_README.md` |
+| `job_scripts/` | all SLURM jobs, one `.job` and one `.sh` per run (see below) |
+| `containers/` | Apptainer images (see below) |
+| `cds_geometry/` | `h5_files/` (simulation), `geometries/` (WCTE geometry `.npz`), `split_paths/` (train/val/test splits) |
+| `simulation/` | WCSim MAC templates for multi-ring events (only test versions, Steph generated the data we used) |
+| `warm_start_checkpoints/` | checkpoints used to warm-start TDA-fusion runs (V8) |
+| `logs/` | Some logs for TDA precomputation runs (`%x_%j.out/.err`) |
 
-```
-python main.py [config options]
-```
+---
 
-The minimal command will simply provide a single config file. For example:
-```
-python main.py --config-name=resnet_train
-```
-will load the configuration from `config/resnet_train.yaml`.
+## Containers
 
-## Configuration
+| Container | Use |
+|---|---|
+| `container_base_ml_v4.0.0_watchmal-pointnet2.sif` | **Main container.** PyTorch with `pointnet2_ops` pre-built inside the image. Use this for all PointNet++ runs. Otherwise it becomes very difficult with the specific PointNet++ library I used. |
 
-### Hydra configuration framework
+> **Note on `pointnet2_ops`:** the library is installed inside `container_base_ml_v4.0.0_watchmal-pointnet2.sif` and does not need to be rebuilt. Do not attempt to reinstall it outside the container. The container may need to be recreated if additional compute types must be installed. This container works for compute capabilities: `TORCH_CUDA_ARCH_LIST="7.5;8.0;8.6;8.9;9.0"`, which covered the full range of capabilities for GPUs across HEP, HPC and fir clusters.
 
-Hydra is used to dynamically create a hierarchical configuration by composition and override it through config files
-and the command line. The composed configuration effectively provides a dictionary of key-value pairs
-(where the configuration hierarchy is built through values that are themselves configuration dictionaries),
-with only minimal or even no code changes needed to handle new configuration options when they
-are introduced.
+---
 
-Running main.py with the argument `--hydra-help` gives documentation on how to use Hydra's command line options
-for controlling the configuration.
+## job_scripts
 
-Full Hydra documentation can be found here: https://hydra.cc/docs/intro/
+Each run has a paired `.job` (SLURM directives + `apptainer exec` call) and `.sh` (the actual Python training command).
 
-The default directory for config files is the `config` directory.
-This can be changed using the `--config-path` option, but this is rarely necessary.
-Related config options are collected together into config groups, using subdirectories that contain config files with
-different sets of config options.
-For example, the `config/data/` directory contains YAML files for different configurations of data to use in training.
+### Top-level scripts
 
-Configuration groups can set a `_target_` key with a value that refers to a python class or method that is automatically
-instantiated, allowing new features to be introduced simply by creating the relevant classes or methods, or using
-existing library classes or methods, and simply referring to these at the appropriate place in the configuration.
+| File | What |
+|---|---|
+| `reg_e_5sa1_12M_60ep.{job,sh}` | Single-ring PointNet++ electron regression, 5 SA layers, 12M events, 60 epochs |
+| `reg_mu_5sa1_12M_60ep.{job,sh}` | Single-ring PointNet++ muon regression, 5 SA layers, 12M events, 60 epochs |
 
-The main config file, set using the `--config-name` option corresponds to the name of a yaml file
-for the desired job configuration. This can contain the full hierarchy of config options self-contained in one file.
-It can also contain a list of "defaults" which are not actually default configs,
-but just specify which config file to use in a config group's subdirectory.
-Hydra will then compose the full configuration from the specified files.
+### `new_singlering/resnet/`
 
-Command line options can be used to override parameters e.g. `tasks.train.epochs=50`,
-add parameters using `+` (e.g. `+tasks.train.epochs=50`), or remove parameters using `~` (e.g. `~tasks.train.epochs`).
-Similarly, config groups can be set by command line, e.g. `tasks/train=train_resnet` will get the train task's config
-from the `config/tasks/train/train_resnet.yaml` file.
+Single-ring ResNet baselines.
 
-### WatChMaL configuration
+| File | What |
+|---|---|
+| `reg_e_baseline_12M.{job,sh}` | Electron position/direction/energy regression, ResNet backbone, 12M events |
+| `reg_mu_baseline_12M.{job,sh}` | Muon equivalent |
 
-The best way to understand the WatChMaL configuration options is to explore the example configuration files in the
-`config` directory, where the config files are designed intended be readable and self-documenting.
-Some configuration options refer to arbitrary classes through the special hydra config , for example the optimizer configuration
-could use any optimizer class provided by pytorch, including configuring that optimizer's parameters, so it is not
-possible to comprehensively document all possible configuration options.
+### `pointnet/`, `new_multiring_e_e/`, `classification/`
 
-Generally, the configuration options for WatChMaL are comprised of only a few top-level options with the rest
-structured into config groups: `data`, `model`, `engine` and `tasks`.
+Earlier PointNet / multi-ring regression and classification runs, predating the main architecture search. Safe to treat as archived/superseded.
 
-The main WatChMaL process uses this configuration system to run jobs that may consist of training loops, loading saved
-states, and/or testing or evaluating the model. The basic steps performed in each WatChMaL run are:
+### `tda/`
 
-1. Set up the global configuration such as the GPUs being used, along with distributed multi-GPU and multiprocessing,
-random number seeds, etc. After this step, for distributed runs the following steps are performed by each distributed
-process.
-2. Instantiate the model (that defines the neural network architecture)
-3. Instantiate the engine (that defines the tasks to be performed, e.g. training loops)
-4. Configure any data loaders used by each of the tasks to be performed.
-5. Configure any optimizers used by each of the tasks to be performed.
-6. Perform each of the tasks.
+Single-ring TDA-fusion training jobs. See `tda_README.md` for full details.
 
-#### Top-level options
-Top level options include the list of GPUs to use, the random seed, and the output path.
-For example, a configuration may specify the following top-level options:
-```
-gpu_list: [0,1]
-seed: 1234
-dump_path: ./outputs/
-```
+| File pattern | What |
+|---|---|
+| `reg_e_tda_full_*.{job,sh}` | Base TDA fusion (concatenation), electrons |
+| `reg_e_tda_amp_*.{job,sh}` | Mixed-precision (AMP) TDA fusion - although I believe I turned amp off for this later. I fixed the timing issue so amp should not be necessary, this script can be run as a baseline |
+| `reg_e_tda_gated_*.{job,sh}` | Gated fusion variant |
+| `reg_e_tda_crossattn_*.{job,sh}` | Cross-attention fusion variant |
+| `*_mmap_smoke.{job,sh}` | Short smoke-test for memory-mapped data loading |
+| `reg_mu_tda_*.{job,sh}` | Muon equivalents of the above |
 
-#### `data`
-The `data` config group defines the data used for the job. Generally it will contain a `dataset` subconfig, with a
-`_target_` that refers to a class that implements the PyTorch `Dataset` class, and the remaining config defines that
-class's options.
-The `data` config group will also configure how the data is split between training, validation and testing, for example.
+### `multiring_v2/`
 
-#### `model`
-The `model` config group defines the network architecture being used. It will generally have a `_target_` that refers to
-a class that implements a PyTorch `Module` and will set the options of that class.
+All multi-ring architecture development. Files generally follow the pattern:
+`reg_2e_multiring_<model>_<variant>_<epochs>.{job,sh}`
 
-#### `engine`
-The `engine` config group defines the main engine class to be used, as well as its options.
+#### Model versions
 
-#### `tasks`
-The `tasks` config is a collection of tasks for the job to perform. Each element of the list must be a config group with
-a `_target_` that refers to a method of the engine class and the method's parameters. Each task can also contain
-`data_loaders` and `optimizers` sub-configs, which are a list of subconfigs defining the `DataLoader` and `Optimizer`
-classes used in the task.
+| Name | Description |
+|---|---|
+| `v1`, `v2` | Early prototype multi-ring heads |
+| `votenet` | First VoteNet-style multi-ring head (unnumbered) |
+| `votenet_v2` … `votenet_v11` | Iterative development of the PointNet++ + VoteNet-style architecture |
+| `resnet_12M` | ResNet backbone on the 12M-event sample (ablation / baseline) |
 
-### Configuration example
+#### Variant suffixes
 
-A basic example of a configuration file for training and testing a ResNet CNN for classification could be
-```
-gpu_list:
-    - 0
-    - 1
-seed: 1234
-dump_path: './outputs/'
-defaults:
-    - data: iwcd_short
-    - data/dataset: iwcd_cnn_short
-    - model: classifier
-    - model/feature_extractor: resnet18
-    - model/classification_network: resnet_fc
-    - engine: classifier
-    - tasks/train: train_resnet
-    - optimizers@tasks.train.optimizers: adam
-    - sampler@tasks.train.data_loaders.train.sampler: subset_random
-    - sampler@tasks.train.data_loaders.validation.sampler: subset_random
-    - tasks/restore_best_state: restore_best_state
-    - tasks/evaluate: test
-    - sampler@tasks.evaluate.data_loaders.test.sampler: subset_sequential
-    - _self_
-```
-The top-level options are set directly, while all remaining configuration is defined through the "defaults" list, which
-provides a list of config group files to compose the full configuration. E.g. the `data` configuration will load the
-`config/data/iwcd_short.yaml` file, with sub-config group `dataset` from `config/data/dataset/iwcd_cnn_short.yaml`.
+| Suffix | Meaning |
+|---|---|
+| `smoke` | Short test run (a few hundred iterations) to check the job runs end-to-end |
+| `10ep`, `20ep`, `60ep`, `180ep` | Training length in epochs |
+| `costnorm` | Hungarian matching cost normalisation — the single clearest improvement in the architecture search |
+| `groupnorm` | GroupNorm replacing BatchNorm (fixes training instability) |
+| `noslot` | Ablation: no slot-ordering in the output head |
+| `crossattn` | Cross-attention fusion variant |
+| `selfattn_only` | Self-attention only (no cross-attention) ablation |
+| `heads{1,2,4,8}` | Number of attention heads |
+| `dirweight` | Increased direction-loss weight |
+| `reg` | Regularisation tuning |
+| `fixedassign_{5,20}ep` | Fixed-assignment diagnostic (tests matching loss / BatchNorm interaction) |
+| `v2style` | V2-style regression head |
+| `control` | Warm-start control (trains from scratch for same number of epochs as warm-start run) |
+| `warmstart` | Warm-start from `warm_start_checkpoints/` |
+| `reeval` | Re-evaluation of a previously trained model (no new training) |
+| `_hx2.sh` | Run on Imperial HX2 cluster (no `.job` file; submitted via Nick Prouse) |
 
-This example configuration performs three tasks:
-* The `train` task that trains the model (configured through the `config/tasks/train/train_resnet.yaml` file).
-* The `restore_best_state` task that loads the state that had the best validation loss during training.
-* The `evaluate` task that evaluates the model.
+#### TDA multi-ring jobs
 
-Each task will define its own data loaders, optimizers, samplers, etc.
+| File pattern | What |
+|---|---|
+| `*_v8_tda_perring_60ep.{job,sh}` | Oracle per-ring TDA features fed into V8 head |
+| `*_v8_tda_perring_gated_60ep.{job,sh}` | Gated fusion of per-ring TDA features |
+| `*_v8_tda_perring_gated_npy_smoke.{job,sh}` | Smoke-test for `.npy`-based TDA loading |
+| `*_v8_tda_mergedist_60ep.{job,sh}` | Merge-distance TDA feature variant |
+| `*_v8_tda_mergedist_gated_60ep.{job,sh}` | Gated fusion of merge-distance features |
+| `reg_2e_multiring_v8_control_10ep.{job,sh}` | Warm-start control (10 ep from scratch) |
+| `reg_2e_multiring_v8_tda_perring_warmstart_10ep.{job,sh}` | Warm-start TDA run (10 ep) |
 
-Lines in the configuration defaults list like
-```
-    - optimizers@tasks.train.optimizers: adam
-```
-indicate that the  `config/optimizers/adam.yaml` file should define the subconfig of `tasks.train.optimizers`.
+These jobs require the multi-ring TDA features from `tda/`. See `tda_README.md`.
 
-The full composed configuration for the above example could then look something like
+---
 
-```
-data:
-  split_path: /fast_scratch/WatChMaL/data/IWCD_mPMT_Short/index_lists/4class_e_mu_gamma_pi0/IWCD_mPMT_Short_4_class_3M_emgp0_idxs.npz
-  dataset:
-    h5file: /fast_scratch/WatChMaL/data/IWCD_mPMT_Short/IWCD_mPMT_Short_emgp0_E0to1000MeV_digihits.h5
-    _target_: watchmal.dataset.cnn_mpmt.cnn_mpmt_dataset.CNNmPMTDataset
-    mpmt_positions_file: /data/WatChMaL/data/IWCDshort_mPMT_image_positions.npz
-    collapse_arrays: false
-    pad: true
-model:
-  _recursive_: false
-  _target_: watchmal.model.classifier.Classifier
-  num_classes: 4
-  feature_extractor:
-    _target_: watchmal.model.resnet.resnet18
-    num_input_channels: 19
-    num_output_channels: 128
-  classification_network:
-    _target_: watchmal.model.classifier.ResNetFullyConnected
-engine:
-  _target_: watchmal.engine.engine_classifier.ClassifierEngine
-tasks:
-  train:
-    epochs: 20
-    report_interval: 100
-    val_interval: 100
-    num_val_batches: 32
-    checkpointing: false
-    data_loaders:
-      train:
-        split_key: train_idxs
-        batch_size: 512
-        num_workers: 4
-        transforms:
-        - horizontal_flip
-        - vertical_flip
-        - front_back_reflection
-        sampler:
-          _target_: torch.utils.data.sampler.SubsetRandomSampler
-      validation:
-        split_key: val_idxs
-        batch_size: 512
-        num_workers: 4
-        sampler:
-          _target_: torch.utils.data.sampler.SubsetRandomSampler
-    optimizers:
-      _target_: torch.optim.Adam
-      lr: 0.0001
-      weight_decay: 0
-  restore_best_state:
-    placeholder: configs can't be empty
-  evaluate:
-    data_loaders:
-      test:
-        split_key: test_idxs
-        batch_size: 4096
-        num_workers: 4
-        sampler:
-          _target_: watchmal.dataset.samplers.SubsetSequentialSampler
-gpu_list:
-- 0
-- 1
-seed: 1234
-dump_path: ./outputs/
-```
+## Batch-job tracking
 
-## Development
+A spreadsheet maps every job name to its output directory, result, and thesis table entry. Available by personal communication.
 
-The WatChMaL codebase follows a very similar structure to the configuration described above
-(in fact the configuration is structured to match the code).
+---
 
-The `main.py` file contains the main code that performs
-the steps of each WatChMaL run:
+## Caveats
 
-1. Set up the global configuration such as the GPUs being used, along with distributed multi-GPU and multiprocessing,
-random number seeds, etc. After this step, for distributed runs the following steps are performed by each distributed
-process.
-2. Instantiate the model (that defines the neural network architecture)
-3. Instantiate the engine (that defines the tasks to be performed, e.g. training loops)
-4. Configure any data loaders used by each of the tasks to be performed.
-5. Configure any optimizers used by each of the tasks to be performed.
-6. Perform each of the tasks.
-
-The remaining code is structured into `dataset`, `model` and `engine` code.
-
-- The `dataset` code defines PyTorch `DataSet` classes used by `DataLoader` objects. These `DataSet` classes contain the
-code for loading the data from disk and processing it into the format required by the network. This code also defines
-any data transformations used for e.g. data augmentation.
-- The `model` code defines PyTorch `nn.Module` classes that form the neural network architecture.
-- The `engine` code defines a class that contains all the methods corresponding to the tasks being run. For example,
-this will include the code to configure the data loaders, optimizers, etc., the training loop itself, as well code to
-save and restore states, and so on.
+- In the multi-ring analysis, "Ring 0 / Ring 1" are raw matched output slots, **not** sorted by true energy. Keep in mind when comparing leading/subleading ring results.
+- Results of each run were transferred to HEP and analysis notebooks were kept on HEP.
+- Clusters used: **fir** (SLURM, what this README refers to), **HEP** (HTCondor) and **HPC** (PBS). Work on the latter two lives elsewhere: /vols/hyperk/users/ks2922/ML_2025 (HEP) & /rds/general/user/ks2922/home/mres (HPC). These should follow the same directory style as on fir.
