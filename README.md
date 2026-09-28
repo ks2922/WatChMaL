@@ -26,6 +26,7 @@ Multi-ring
 - Analysis notebooks for multi-ring runs
 
 The codebase this project builds on — the pointnet2_ops CUDA layers and the general PyTorch structure — is Erik Wijmans' PyTorch reimplementation (`erikwijmans/Pointnet2_PyTorch`), which is the widely-used PyTorch port of the original TensorFlow code. Topological features are extracted via persistent homology (Vietoris–Rips filtration) on the PMT hit point cloud, using `giotto-ph` for diagram computation and `giotto-tda`'s PersistenceImage (Adams et al., 2017) for vectorisation into the fixed-length feature vector fused with the network.
+
 ---
 
 ## HEP layout (`/vols/hyperk/users/ks2922/ML_2025/`)
