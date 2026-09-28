@@ -4,6 +4,28 @@ Deep learning and topological data analysis for single- and multi-ring event rec
 **Code:** https://github.com/ks2922/WatChMaL, branch `master` (fork of WatChMaL/WatChMaL).  
 **TDA-specific details:** see `tda_README.md`.
 
+Summary
+
+This is a fork of WatChMaL with the addition of topology-informed point cloud networks for single- and multi-ring event reconstruction at WCTE: PointNet++ architectures fused with topological data analysis (TDA) features derived from persistent homology of the PMT hit point cloud, plus a full multi-ring architecture development cycle (V1–V11, VoteNet-style heads) using Hungarian matching for ring assignment.
+
+Single-ring
+- PointNet++ architecture files (SA-layer sweep variants: depth, radius, npoint, dropout)
+- ResNet baseline
+- TDA fusion variants: base (concatenation), gated, cross-attention
+- TDA precompute and feature-build scripts
+- Respective config files
+- Analysis notebooks for single-ring runs
+
+Multi-ring
+- V1–V11 multi-ring architecture variants (PointNet++ + VoteNet-style heads), ResNet backbone variant
+- Hungarian matching engine, including the cost-normalisation fix and fixed-assignment diagnostic variant
+- GroupNorm variants (to address BatchNorm running-stat mismatch)
+- Multi-ring TDA fusion: oracle per-ring and merge-distance methods, each with base and gated variants
+- Warm-start mechanism (load_pretrained_weights task) and matching checkpoints
+- Respective config files
+- Analysis notebooks for multi-ring runs
+
+The codebase this project builds on — the pointnet2_ops CUDA layers and the general PyTorch structure — is Erik Wijmans' PyTorch reimplementation (`erikwijmans/Pointnet2_PyTorch`), which is the widely-used PyTorch port of the original TensorFlow code. Topological features are extracted via persistent homology (Vietoris–Rips filtration) on the PMT hit point cloud, using `giotto-ph` for diagram computation and `giotto-tda`'s PersistenceImage (Adams et al., 2017) for vectorisation into the fixed-length feature vector fused with the network.
 ---
 
 ## HEP layout (`/vols/hyperk/users/ks2922/ML_2025/`)
